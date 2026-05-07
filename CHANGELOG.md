@@ -23,3 +23,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - jsDelivr / unpkg CDN snippet-paste install path
 - Full TypeScript types
 - Targets browsers + Node 18+
+
+### Fixed
+
+- **`flushAll` now honours the `Retry-After` backoff after a 429 response.** Without this guard, a 429 from the server caused `flush()` (which uses `flushAll`) to re-queue the batch and immediately retry in a tight loop, allocating an `Array.prototype.slice` on every iteration and ultimately crashing the browser tab with an out-of-memory error. The fix adds the same `_rau` (retry-after) check to `flushAll` that `flush()` already had, so a 429 leaves exactly one HTTP call per `flush()` invocation and the events stay queued until the backoff window expires.

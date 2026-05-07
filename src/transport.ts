@@ -28,7 +28,12 @@ export class Transport {
 
   async flushAll(): Promise<void> {
     if (this._oo() || this._halt) return;
-    while (this._q.length > 0) { await this._send(this._q.splice(0, this._c.maxBatchSize)); if (this._halt) break; }
+    if (this._rau > 0 && Date.now() < this._rau) return;
+    while (this._q.length > 0) {
+      await this._send(this._q.splice(0, this._c.maxBatchSize));
+      if (this._halt) break;
+      if (this._rau > 0 && Date.now() < this._rau) break;
+    }
   }
 
   exitFlush(): boolean {

@@ -47,15 +47,7 @@ describe('Transport — Error Handling', () => {
     expect(b._getTransport().getQueue().filter(e => e.category === 'cat')).toHaveLength(0);
   });
 
-  // OOM: this specific test crashes the vitest worker with a Node heap-allocation
-  // failure even at --max-old-space-size=8192. Bisected to test #3 alone (tests 1
-  // and 2 pass solo in <15ms each). The SDK 429 path itself is straightforward
-  // (transport.ts:61-67) — re-queue, set _rau, return — so the bug is most likely
-  // in the test's interaction with vi.stubGlobal('fetch') + Response object reuse
-  // across the mockResolvedValue lifecycle. Filed in BACKLOG.md as a follow-up
-  // 2026-05-07. Skip-on-publish so we can ship 1.0.0 with the other 127 tests
-  // green; revisit before 1.1.0.
-  it.skip('429 re-queues events (AC-1708, EC-622)', async () => {
+  it('429 re-queues events and honors Retry-After backoff (AC-1708, EC-622)', async () => {
     Beacon._resetSingleton();
     const b = Beacon.init({ ...validConfig(), debug: true });
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -64,6 +56,9 @@ describe('Transport — Error Handling', () => {
     await b.flush();
     const q = b._getTransport().getQueue();
     expect(q.some(e => e.category === 'cat')).toBe(true);
+    const eventCalls = fetchMock.mock.calls.filter((c: any[]) =>
+      typeof c[0] === 'string' && c[0].endsWith('/v1/events'));
+    expect(eventCalls).toHaveLength(1);
     warnSpy.mockRestore();
   });
 });
