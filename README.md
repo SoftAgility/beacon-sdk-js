@@ -77,7 +77,7 @@ The package is also reachable via [unpkg](https://unpkg.com/@softagility/beacon-
 | `apiKey` | required | — | API key from the Beacon portal. Sent as `Authorization: Bearer`. |
 | `sourceApp` | required | ≤128 chars | `source_app` on every event. Must match a registered product in the portal. |
 | `sourceVersion` | required | ≤256 chars | `source_version`. Auto-registers on first event. |
-| `endpoint` | `https://beacon.softagility.com` | URL | Override for self-hosted / staging. |
+| `endpoint` | `https://api.beacon.softagility.com` | URL | Override for self-hosted / staging. |
 | `sessionTimeoutMinutes` | `30` | 1-1440 | Inactivity window before a new session rotates. |
 | `autoPageViews` | `true` | — | Hook `history.pushState` and `popstate` for auto page views. |
 | `flushIntervalMs` | `10000` | 1000-300000 | Background flush cadence. |

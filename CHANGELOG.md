@@ -26,4 +26,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Fixed
 
+- **Default `endpoint` now points at `https://api.beacon.softagility.com`.** The previous default of `https://beacon.softagility.com` was the dashboard URL (Next.js frontend), not the API URL. Customers using the snippet-paste install path without an explicit `endpoint` config would hit the frontend and receive a Next.js 404 on every event POST.
 - **`flushAll` now honours the `Retry-After` backoff after a 429 response.** Without this guard, a 429 from the server caused `flush()` (which uses `flushAll`) to re-queue the batch and immediately retry in a tight loop, allocating an `Array.prototype.slice` on every iteration and ultimately crashing the browser tab with an out-of-memory error. The fix adds the same `_rau` (retry-after) check to `flushAll` that `flush()` already had, so a 429 leaves exactly one HTTP call per `flush()` invocation and the events stay queued until the backoff window expires.
+
+### Changed
+
+- **UMD global is now the `Beacon` class itself** (`Beacon.init(...)`), not a namespaced object (`Beacon.Beacon.init(...)`). Switches the UMD bundle to a default-export entry point so the snippet-paste path matches the README and behaves the way customers expect.

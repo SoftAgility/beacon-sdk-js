@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Beacon SDK
 *.tgz
+
+# Dev smoke test artifacts
+smoke.html

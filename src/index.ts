@@ -18,7 +18,7 @@ export type { BeaconConfig, OutboundEventPayload, BreadcrumbEntry, ErrorSeverity
 export type { EventDefinition, EventManifest } from './types.js';
 
 const W = typeof window !== 'undefined';
-const DE = 'https://beacon.softagility.com';
+const DE = 'https://api.beacon.softagility.com';
 
 function cl(v: number | undefined, lo: number, hi: number, d: number, f: string, dbg: boolean): number {
   if (v == null) return d;

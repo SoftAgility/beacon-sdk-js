@@ -30,6 +30,6 @@ const ts = () => typescript({ tsconfig: './tsconfig.json', declaration: false })
 export default [
   { input, output: { file: 'dist/beacon.esm.js', format: 'es', sourcemap: false }, plugins: [ts(), terser(terserOpts)] },
   { input, output: { file: 'dist/beacon.cjs.js', format: 'cjs', exports: 'named', sourcemap: false }, plugins: [ts(), terser(terserOpts)] },
-  { input, output: { file: 'dist/beacon.umd.js', format: 'umd', name: 'Beacon', exports: 'named', sourcemap: false }, plugins: [ts(), terser(terserOpts)] },
+  { input: 'src/umd-entry.ts', output: { file: 'dist/beacon.umd.js', format: 'umd', name: 'Beacon', exports: 'default', sourcemap: false }, plugins: [ts(), terser(terserOpts)] },
   { input, output: { file: 'dist/beacon.d.ts', format: 'es' }, plugins: [dts()] },
 ];
