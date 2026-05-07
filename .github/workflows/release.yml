@@ -1,0 +1,75 @@
+name: Release to npm
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 1.0.0). If empty, uses tag name.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write   # Required for npm provenance
+
+jobs:
+  publish:
+    name: Build, test, publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: $VERSION"
+
+      # Sanity-check that the package.json version matches the tag.
+      - name: Verify package.json version matches tag
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$PKG_VERSION" != "${{ steps.version.outputs.VERSION }}" ]; then
+            echo "::error::package.json version ($PKG_VERSION) does not match tag (${{ steps.version.outputs.VERSION }})"
+            exit 1
+          fi
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Bundle size budget
+        run: npm run size
+
+      - name: Pack (sanity preview before publish)
+        run: |
+          npm pack --dry-run
+          echo "✓ pack dry-run succeeded"
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # CDN propagation note: jsDelivr and unpkg auto-mirror within ~10 min.
+      # Verify post-publish at:
+      #   https://cdn.jsdelivr.net/npm/@softagility/beacon-js@<v>
+      #   https://unpkg.com/@softagility/beacon-js@<v>
