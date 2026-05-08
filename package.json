@@ -63,13 +63,13 @@
   ],
   "license": "MIT",
   "author": "SoftAgility",
-  "homepage": "https://github.com/softagility/beacon-sdk-js#readme",
+  "homepage": "https://github.com/SoftAgility/beacon-sdk-js#readme",
   "bugs": {
-    "url": "https://github.com/softagility/beacon-sdk-js/issues"
+    "url": "https://github.com/SoftAgility/beacon-sdk-js/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/softagility/beacon-sdk-js.git"
+    "url": "https://github.com/SoftAgility/beacon-sdk-js.git"
   },
   "publishConfig": {
     "access": "public",

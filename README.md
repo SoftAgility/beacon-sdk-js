@@ -124,16 +124,16 @@ The ESM build is **under 6 KB gzipped** — smaller than the typical analytics v
 
 ## Examples
 
-A working browser example lives at [`sdk/examples/web`](https://github.com/softagility/beacon/tree/main/sdk/examples) in the main repo (where present) — covers init, identify, track, sessions, exception reporting, and graceful shutdown.
+A working browser example lives at [`sdk/examples/web`](https://github.com/SoftAgility/beacon/tree/main/sdk/examples) in the main repo (where present) — covers init, identify, track, sessions, exception reporting, and graceful shutdown.
 
 ---
 
 ## Related
 
 - **Beacon portal:** https://beacon.softagility.com
-- **Other SDKs:** [.NET](https://www.nuget.org/packages/SoftAgility.Beacon), [C++](https://github.com/softagility/beacon-sdk-cpp)
+- **Other SDKs:** [.NET](https://www.nuget.org/packages/SoftAgility.Beacon), [C++](https://github.com/SoftAgility/beacon-sdk-cpp)
 - **REST API:** integrate without an SDK by POSTing to `/v1/events` directly
-- **Source:** https://github.com/softagility/beacon-sdk-js
+- **Source:** https://github.com/SoftAgility/beacon-sdk-js
 
 ## License
 
