@@ -122,12 +122,6 @@ The ESM build is **under 6 KB gzipped** — smaller than the typical analytics v
 
 ---
 
-## Examples
-
-A working browser example lives at [`sdk/examples/web`](https://github.com/SoftAgility/beacon/tree/main/sdk/examples) in the main repo (where present) — covers init, identify, track, sessions, exception reporting, and graceful shutdown.
-
----
-
 ## Related
 
 - **Beacon portal:** https://beacon.softagility.com
