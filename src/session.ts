@@ -1,5 +1,5 @@
 import { generateUuidV7 } from './uuid.js';
-import type { ResolvedConfig } from './types.js';
+import type { ResolvedConfig, SessionStartPayload } from './types.js';
 const SK = 'beacon_session_id', SSK = 'beacon_session_started_at';
 let ssA: boolean | null = null;
 function ssOk(): boolean { if (ssA !== null) return ssA; try { sessionStorage.setItem('__b', '1'); sessionStorage.removeItem('__b'); ssA = true; } catch { ssA = false; } return ssA; }
@@ -20,14 +20,21 @@ export class SessionManager {
 
   private _h(): HeadersInit { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this._c.apiKey}` }; }
 
-  startSession(actorId: string, now: number): Promise<Response | void> {
+  startSession(actorId: string, now: number, accountId?: string | null, licenseId?: string | null): Promise<Response | void> {
     const sid = generateUuidV7(now, this._c.debug), sat = new Date(now).toISOString();
     this._sid = sid; this._la = now; this._es = false;
     if (ssOk()) try { sessionStorage.setItem(SK, sid); sessionStorage.setItem(SSK, sat); } catch {}
     else if (this._c.debug) try { console.warn('[Beacon] sessionStorage unavailable.'); } catch {}
     if (this._c.debug) try { console.debug(`[Beacon] Session started: ${sid}`); } catch {}
+    const body: SessionStartPayload = {
+      session_id: sid, actor_id: actorId,
+      source_app: this._c.sourceApp, source_version: this._c.sourceVersion,
+      started_at: sat,
+    };
+    if (accountId) body.account_id = accountId;
+    if (licenseId) body.license_id = licenseId;
     return fetch(`${this._c.endpoint}/v1/events/sessions`, {
-      method: 'POST', headers: this._h(), body: JSON.stringify({ session_id: sid, actor_id: actorId, source_app: this._c.sourceApp, source_version: this._c.sourceVersion, started_at: sat }),
+      method: 'POST', headers: this._h(), body: JSON.stringify(body),
     }).catch(() => {});
   }
 

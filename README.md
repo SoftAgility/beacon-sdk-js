@@ -64,7 +64,9 @@ The package is also reachable via [unpkg](https://unpkg.com/@softagility/beacon-
 | `beacon.events.define(category, name)` | Declare an event for manifest export. |
 | `beacon.events.exportManifest()` | Returns a JSON manifest for upload to the portal's Allowlists Import flow. |
 | `beacon.optOut()` / `beacon.optIn()` | Persist consent state to `localStorage`. While opted out, every method is a silent no-op. |
-| `beacon.reset()` | Clear actor + session + queue + breadcrumbs. Rotates the anonymous device id. Used on logout. |
+| `beacon.setAccount(accountId)` / `beacon.clearAccount()` | Attach (or clear) an opaque per-customer account identifier on subsequent events, sessions, and exceptions. See below for guidance. |
+| `beacon.setLicense(licenseId)` / `beacon.clearLicense()` | Attach (or clear) an opaque per-contract license identifier. **Prefer per-contract IDs** — see below. |
+| `beacon.reset()` | Clear actor + session + queue + breadcrumbs + account + license. Rotates the anonymous device id. Used on logout. |
 | `beacon.destroy()` | Stop all timers and release resources. The instance becomes inert. |
 | `beacon.getSessionId()` / `beacon.getActorId()` | Read current state. |
 
@@ -85,6 +87,55 @@ The package is also reachable via [unpkg](https://unpkg.com/@softagility/beacon-
 | `maxQueueSize` | `5000` | 100-10000 | In-memory queue depth (oldest dropped on overflow). |
 | `maxBreadcrumbs` | `25` | 0-200 | Breadcrumb ring buffer; `0` disables. |
 | `debug` | `false` | — | Enable `console.debug` SDK logs. |
+
+---
+
+## Account & License Context
+
+Beacon supports two optional analytics dimensions beyond the per-user `actor_id`:
+
+- **Account** — the vendor's customer account or organization (e.g., a workspace, tenant, team)
+- **License** — the contract, subscription, or entitlement under which usage is occurring
+
+Both are pseudonymous opaque strings (1-256 chars). Attach them once after sign-in and every subsequent event, session, and exception carries the context until you clear it or call `reset()`.
+
+```ts
+beacon.identify('user-12345');
+beacon.setAccount('acct-acme-corp');
+beacon.setLicense('sub_1234567890');         // single shared subscription / contract id
+
+beacon.track('feature', 'export');           // emits with account_id + license_id
+```
+
+### Modeling licenses — prefer per-contract IDs
+
+The richest Beacon analytics surface (the **License Detail** page, plan-overuse alerts, multi-account-sharing warnings) only lights up when many users emit events under the **same** `license_id`. Pick a string that all users on the same contract / subscription / site key share:
+
+**Recommended** (per-contract id):
+
+```ts
+// All 50 users at Acme Corp send the same license_id
+beacon.setLicense('sub_acme_corp_pro_annual');
+```
+
+**Avoid** (per-user id):
+
+```ts
+// Each user sends their own — License Detail becomes a duplicate of the Actor Identities view
+beacon.setLicense(`license-for-${userId}`);
+```
+
+The `/accounts` and `/licenses` pages in the Beacon portal require the **Business** plan or higher. Ingestion is plan-blind — events emitted on lower plans still carry `account_id`/`license_id` and become visible the moment the plan is upgraded.
+
+### Validation
+
+Invalid inputs are silently ignored — calls never throw. Rules (matching the .NET SDK and ingest validator):
+
+- 1-256 characters after trimming
+- No whitespace-only strings
+- No control characters (`\r`, `\n`, `\t`, U+2028, U+2029, etc.)
+
+Enable `debug: true` in `init()` to see `console.warn` messages explaining why an input was rejected.
 
 ---
 

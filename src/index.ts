@@ -51,6 +51,39 @@ function vc(c: BeaconConfig): void {
   }
 }
 
+/**
+ * Validates an account_id or license_id. Returns the trimmed string on success,
+ * null on failure (with a debug warning). Rules match the .NET SDK + ingest validator:
+ * - Must be a non-empty string
+ * - 1-256 characters after trimming
+ * - No whitespace-only strings
+ * - No control characters (\r, \n, \t, U+2028, U+2029, etc.)
+ */
+function validateContextId(id: string, fieldName: string, debug: boolean): string | null {
+  if (typeof id !== 'string' || id.length === 0) {
+    if (debug) try { console.warn(`[Beacon] ${fieldName} must be a non-empty string — ignored.`); } catch {}
+    return null;
+  }
+  const trimmed = id.trim();
+  if (trimmed.length === 0) {
+    if (debug) try { console.warn(`[Beacon] ${fieldName} cannot be whitespace-only — ignored.`); } catch {}
+    return null;
+  }
+  if (trimmed.length > 256) {
+    if (debug) try { console.warn(`[Beacon] ${fieldName} exceeds 256 characters — ignored.`); } catch {}
+    return null;
+  }
+  // Reject control characters (any char with code < 32, plus 0x2028/0x2029 line separators)
+  for (let i = 0; i < trimmed.length; i++) {
+    const code = trimmed.charCodeAt(i);
+    if (code < 32 || code === 0x2028 || code === 0x2029) {
+      if (debug) try { console.warn(`[Beacon] ${fieldName} contains a control character — ignored.`); } catch {}
+      return null;
+    }
+  }
+  return trimmed;
+}
+
 function sp(p: Record<string, string | number | boolean> | undefined, d: boolean): Record<string, string | number | boolean> | undefined {
   if (!p || typeof p !== 'object') return undefined;
   const r: Record<string, string | number | boolean> = {};
@@ -69,12 +102,14 @@ function sp(p: Record<string, string | number | boolean> | undefined, d: boolean
 let inst: Beacon | null = null;
 
 const NE: EventsApi = { define() {}, exportManifest() { return ''; } };
-const NB = { events: NE, track() {}, trackError() {}, identify() {}, pageView() {}, async flush() {}, reset() {}, optOut() {}, optIn() {}, destroy() {}, getSessionId() { return null as string | null; }, getActorId() { return ''; }, _getConfig: () => null, _getTransport: () => null, _getBreadcrumbs: () => null, _getSessionManager: () => null, _isOptedOut: () => false };
+const NB = { events: NE, track() {}, trackError() {}, identify() {}, pageView() {}, async flush() {}, reset() {}, optOut() {}, optIn() {}, destroy() {}, setAccount() {}, clearAccount() {}, setLicense() {}, clearLicense() {}, getSessionId() { return null as string | null; }, getActorId() { return ''; }, _getConfig: () => null, _getTransport: () => null, _getBreadcrumbs: () => null, _getSessionManager: () => null, _isOptedOut: () => false };
 
 export class Beacon {
   private readonly _c: ResolvedConfig;
   private _oo: boolean;
   private _aid: string;
+  private _accId: string | null = null;
+  private _licId: string | null = null;
   private _dead = false;
   private readonly _sm: SessionManager;
   private readonly _tr: Transport;
@@ -146,6 +181,8 @@ export class Beacon {
       if (e.message) p.message = e.message.substring(0, 1000);
       if (e.stack) p.stack_trace = e.stack.substring(0, 32768);
       const sid = this._sm.getSessionId(); if (sid) p.session_id = sid;
+      if (this._accId) p.account_id = this._accId;
+      if (this._licId) p.license_id = this._licId;
       if (this._bc.isEnabled() && this._bc.size > 0) p.breadcrumbs = this._bc.snapshot();
       if (this._c.debug) try { console.debug(`[Beacon] trackError: ${p.exception_type}`); } catch {}
       fetch(`${this._c.endpoint}/v1/events/exceptions`, {
@@ -215,6 +252,8 @@ export class Beacon {
       this._tr.clearQueue(); this._bc.clear();
       this._aid = resetActorId(Date.now(), this._c.debug);
       this._sm.clearSession();
+      this._accId = null;
+      this._licId = null;
       if (this._c.debug) try { console.debug(`[Beacon] Reset. actorId=${this._aid}`); } catch {}
     } catch (e) { if (this._c.debug) try { console.error('[Beacon] reset error:', e); } catch {} }
   }
@@ -245,6 +284,58 @@ export class Beacon {
     } catch {}
   }
 
+  /**
+   * Sets the account context for subsequent events, sessions, and exception reports.
+   *
+   * @param accountId - An opaque identifier for the vendor's customer account /
+   * organization (1-256 chars). Pseudonymous IDs only — do not pass personally
+   * identifying strings like email addresses. Cleared by `clearAccount()` or `reset()`.
+   */
+  setAccount(accountId: string): void {
+    if (this._dead || this._oo) return;
+    const validated = validateContextId(accountId, 'accountId', this._c.debug);
+    if (validated === null) return;
+    this._accId = validated;
+    if (this._c.debug) try { console.debug(`[Beacon] setAccount: ${validated}`); } catch {}
+  }
+
+  /**
+   * Clears the account context. Subsequent events emit with no `account_id` field.
+   */
+  clearAccount(): void {
+    if (this._dead) return;
+    this._accId = null;
+    if (this._c.debug) try { console.debug('[Beacon] clearAccount'); } catch {}
+  }
+
+  /**
+   * Sets the license context for subsequent events, sessions, and exception reports.
+   *
+   * @param licenseId - An opaque identifier for the license, contract, or
+   * entitlement under which usage is occurring. **Prefer per-contract IDs** (a
+   * single string shared across all of a customer's users — e.g., a subscription
+   * ID, site key, or bundle SKU) for the richest Beacon analytics. Per-user
+   * license IDs work but reduce the License Detail page to a near-duplicate of
+   * the Actor Identities view and disable the multi-account-sharing warning.
+   * See the Beacon docs section "Modeling licenses" for guidance.
+   */
+  setLicense(licenseId: string): void {
+    if (this._dead || this._oo) return;
+    const validated = validateContextId(licenseId, 'licenseId', this._c.debug);
+    if (validated === null) return;
+    this._licId = validated;
+    if (this._c.debug) try { console.debug(`[Beacon] setLicense: ${validated}`); } catch {}
+  }
+
+  /**
+   * Clears the license context. Subsequent events emit with no `license_id` field.
+   */
+  clearLicense(): void {
+    if (this._dead) return;
+    this._licId = null;
+    if (this._c.debug) try { console.debug('[Beacon] clearLicense'); } catch {}
+  }
+
   getSessionId(): string | null { return this._dead ? null : this._sm.getSessionId(); }
   getActorId(): string { return this._dead ? '' : this._aid; }
 
@@ -252,6 +343,8 @@ export class Beacon {
   private _ev(t: number, cat: string, nm: string, props?: Record<string, string | number | boolean>): OutboundEventPayload {
     const ev: OutboundEventPayload = { event_id: generateUuidV7(t, this._c.debug), category: cat, name: nm, timestamp: new Date(t).toISOString(), actor_id: this._aid, source_app: this._c.sourceApp, source_version: this._c.sourceVersion };
     const sid = this._sm.getSessionId(); if (sid) ev.session_id = sid;
+    if (this._accId) ev.account_id = this._accId;
+    if (this._licId) ev.license_id = this._licId;
     if (props) ev.properties = props;
     return ev;
   }
@@ -274,11 +367,11 @@ export class Beacon {
 
   private _ens(t: number): void {
     if (this._sm.hasActiveSession()) {
-      if (this._sm.isSessionExpired(t)) { this._sm.endSession(t, false); this._sm.startSession(this._aid, t).catch(() => {}); this._pv(t); }
+      if (this._sm.isSessionExpired(t)) { this._sm.endSession(t, false); this._sm.startSession(this._aid, t, this._accId, this._licId).catch(() => {}); this._pv(t); }
       else this._sm.touchActivity(t);
       return;
     }
-    this._sm.startSession(this._aid, t).catch(() => {});
+    this._sm.startSession(this._aid, t, this._accId, this._licId).catch(() => {});
     if (this._c.autoPageViews) this._pv(t);
   }
 

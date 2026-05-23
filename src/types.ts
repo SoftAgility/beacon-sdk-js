@@ -49,6 +49,12 @@ export interface OutboundEventPayload {
   source_app: string;
   source_version: string;
   session_id?: string;
+  /** Opaque account identifier set via `setAccount()`. Omitted entirely from the
+   *  payload when not set — ingest distinguishes "absent" from "present but invalid". */
+  account_id?: string;
+  /** Opaque license identifier set via `setLicense()`. Omitted entirely from the
+   *  payload when not set — ingest distinguishes "absent" from "present but invalid". */
+  license_id?: string;
   properties?: Record<string, string | number | boolean>;
 }
 
@@ -59,6 +65,10 @@ export interface SessionStartPayload {
   source_app: string;
   source_version: string;
   started_at: string;
+  /** Opaque account identifier set via `setAccount()`. Omitted when not set. */
+  account_id?: string;
+  /** Opaque license identifier set via `setLicense()`. Omitted when not set. */
+  license_id?: string;
 }
 
 /** Body for `POST /v1/events/sessions/end`. */
@@ -80,6 +90,10 @@ export interface ExceptionPayload {
   message?: string;
   stack_trace?: string;
   session_id?: string;
+  /** Opaque account identifier set via `setAccount()`. Omitted when not set. */
+  account_id?: string;
+  /** Opaque license identifier set via `setLicense()`. Omitted when not set. */
+  license_id?: string;
   breadcrumbs?: BreadcrumbEntry[];
 }
 

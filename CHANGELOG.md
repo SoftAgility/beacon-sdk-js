@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-23
+
+### Added
+
+- `setAccount(accountId)` and `clearAccount()` — attach a per-customer account identifier to subsequent events, sessions, and exceptions. Enables Beacon's account-grain analytics (Account Detail page, account-grain segments/funnels/retention) for vendors with multi-tenant or multi-customer apps.
+- `setLicense(licenseId)` and `clearLicense()` — attach a per-contract license identifier. **Prefer per-contract IDs over per-user IDs** for richer License Detail analytics. See `setLicense` JSDoc for guidance.
+- `account_id` and `license_id` fields on `OutboundEventPayload`, `SessionStartPayload`, and `ExceptionPayload` types.
+- Validation matches the .NET SDK and ingest validator: 1-256 chars after trim, no whitespace-only, no control characters (including U+2028/U+2029). Invalid inputs are silently ignored — calls never throw.
+
+### Changed
+
+- `reset()` now clears the account and license context in addition to clearing the actor and session.
+
 ## [1.0.0] - 2026-05-07
 
 ### Added
