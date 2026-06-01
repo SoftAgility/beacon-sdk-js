@@ -4,7 +4,7 @@ import { Beacon } from '../src/index';
 const validConfig = () => ({
   apiKey: 'test-key-123',
   product: 'test-app',
-  sourceVersion: '1.0.0',
+  productVersion: '1.0.0',
   autoPageViews: false,
   flushIntervalMs: 300000,
 });

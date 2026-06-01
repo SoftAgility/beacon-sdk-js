@@ -31,7 +31,7 @@ function cl(v: number | undefined, lo: number, hi: number, d: number, f: string,
 function rc(c: BeaconConfig): ResolvedConfig {
   const d = c.debug === true;
   return {
-    apiKey: c.apiKey, product: c.product, sourceVersion: c.sourceVersion,
+    apiKey: c.apiKey, product: c.product, productVersion: c.productVersion,
     sessionTimeoutMinutes: cl(c.sessionTimeoutMinutes, 1, 1440, 30, 'sessionTimeoutMinutes', d),
     autoPageViews: c.autoPageViews !== false,
     flushIntervalMs: cl(c.flushIntervalMs, 1000, 300000, 10000, 'flushIntervalMs', d),
@@ -45,7 +45,7 @@ function rc(c: BeaconConfig): ResolvedConfig {
 function vc(c: BeaconConfig): void {
   if (!c.apiKey || typeof c.apiKey !== 'string') throw new TypeError('Beacon: apiKey is required.');
   if (!c.product || typeof c.product !== 'string') throw new TypeError('Beacon: product is required.');
-  if (!c.sourceVersion || typeof c.sourceVersion !== 'string') throw new TypeError('Beacon: sourceVersion is required.');
+  if (!c.productVersion || typeof c.productVersion !== 'string') throw new TypeError('Beacon: productVersion is required.');
   if (c.endpoint != null && c.endpoint !== '' && (typeof c.endpoint !== 'string' || (!c.endpoint.startsWith('https://') && !c.endpoint.startsWith('http://')))) {
     throw new TypeError('Beacon: endpoint must be a valid absolute URL beginning with https:// or http://.');
   }
@@ -176,7 +176,7 @@ export class Beacon {
       const p: ExceptionPayload = {
         exception_id: generateUuidV7(t, this._c.debug), exception_type: e.name || 'Error',
         severity: severity === 'fatal' ? 'fatal' : 'non_fatal', occurred_at: new Date(t).toISOString(),
-        actor_id: this._aid, product: this._c.product, source_version: this._c.sourceVersion,
+        actor_id: this._aid, product: this._c.product, product_version: this._c.productVersion,
       };
       if (e.message) p.message = e.message.substring(0, 1000);
       if (e.stack) p.stack_trace = e.stack.substring(0, 32768);
@@ -213,7 +213,7 @@ export class Beacon {
               identified_actor_id: userId,
               identified_at: new Date().toISOString(),
               product: this._c.product,
-              source_version: this._c.sourceVersion,
+              product_version: this._c.productVersion,
             }),
           }).then(res => {
             if (res.status === 409) {
@@ -341,7 +341,7 @@ export class Beacon {
 
   // --- private ---
   private _ev(t: number, cat: string, nm: string, props?: Record<string, string | number | boolean>): OutboundEventPayload {
-    const ev: OutboundEventPayload = { event_id: generateUuidV7(t, this._c.debug), category: cat, name: nm, timestamp: new Date(t).toISOString(), actor_id: this._aid, product: this._c.product, source_version: this._c.sourceVersion };
+    const ev: OutboundEventPayload = { event_id: generateUuidV7(t, this._c.debug), category: cat, name: nm, timestamp: new Date(t).toISOString(), actor_id: this._aid, product: this._c.product, product_version: this._c.productVersion };
     const sid = this._sm.getSessionId(); if (sid) ev.session_id = sid;
     if (this._accId) ev.account_id = this._accId;
     if (this._licId) ev.license_id = this._licId;

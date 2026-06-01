@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-06-01
+
+### BREAKING
+
+- Renamed the config field `sourceVersion` to `productVersion` in `Beacon.init(config)`. The value is unchanged — it is still the application version string.
+- Renamed the outbound wire field `source_version` to `product_version` on every emission: event (`POST /v1/events`), session-start (`POST /v1/events/sessions`), exception (`POST /v1/events/exceptions`), and actor-identify.
+
+Migration: rename `sourceVersion` to `productVersion` in your `Beacon.init({ ... })` call. No other changes are required.
+
 ## [2.0.0] - 2026-05-31
 
 ### BREAKING

@@ -1,6 +1,6 @@
 {
   "name": "@softagility/beacon-js",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "SoftAgility Beacon JavaScript/TypeScript SDK — track usage events, manage sessions, capture exceptions, and queue events offline. Browser + Node.",
   "type": "module",
   "main": "dist/beacon.cjs.js",

@@ -21,8 +21,8 @@ import { Beacon } from '@softagility/beacon-js';
 
 const beacon = Beacon.init({
   apiKey:        'pk_your_api_key',
-  product:       'my-app',           // the registered product on every event
-  sourceVersion: '1.4.2',            // becomes source_version on every event
+  product:        'my-app',          // the registered product on every event
+  productVersion: '1.4.2',           // becomes product_version on every event
 });
 
 beacon.identify('user-12345');
@@ -40,8 +40,8 @@ For static sites, CMS plugins, marketing landing pages, or any context without a
 <script>
   const beacon = Beacon.init({
     apiKey:        'pk_your_api_key',
-    product:       'marketing-site',
-    sourceVersion: '2026-05-07',
+    product:        'marketing-site',
+    productVersion: '2026-05-07',
   });
   beacon.track('page', 'view', { path: location.pathname });
 </script>
@@ -78,7 +78,7 @@ The package is also reachable via [unpkg](https://unpkg.com/@softagility/beacon-
 |---|---|---|---|
 | `apiKey` | required | — | API key from the Beacon portal. Sent as `Authorization: Bearer`. |
 | `product` | required | ≤128 chars | The registered product on every event. Must match a registered product in the portal. |
-| `sourceVersion` | required | ≤256 chars | `source_version`. Auto-registers on first event. |
+| `productVersion` | required | ≤256 chars | `product_version`. Auto-registers on first event. |
 | `endpoint` | `https://api.beacon.softagility.com` | URL | Override for self-hosted / staging. |
 | `sessionTimeoutMinutes` | `30` | 1-1440 | Inactivity window before a new session rotates. |
 | `autoPageViews` | `true` | — | Hook `history.pushState` and `popstate` for auto page views. |
@@ -161,7 +161,7 @@ The SDK works in Node 18+. In a non-browser context (`typeof window === 'undefin
 
 ```ts
 // Next.js Server Component / Express / Cloudflare Worker — all safe
-const beacon = Beacon.init({ apiKey, product, sourceVersion });
+const beacon = Beacon.init({ apiKey, product, productVersion });
 beacon.track('whatever');  // no-op on the server, real call in the browser
 ```
 

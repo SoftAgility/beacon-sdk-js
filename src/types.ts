@@ -5,7 +5,7 @@ export interface BeaconConfig {
   /** Application identifier. Required, non-empty, max 128 chars. */
   product: string;
   /** Application version. Required, non-empty, max 256 chars. */
-  sourceVersion: string;
+  productVersion: string;
   /** Inactivity timeout in minutes before a session rotates. Default 30, clamped [1, 1440]. */
   sessionTimeoutMinutes?: number;
   /** When true, hooks `pushState` and `popstate` for auto page views. Default true. */
@@ -28,7 +28,7 @@ export interface BeaconConfig {
 export interface ResolvedConfig {
   apiKey: string;
   product: string;
-  sourceVersion: string;
+  productVersion: string;
   sessionTimeoutMinutes: number;
   autoPageViews: boolean;
   flushIntervalMs: number;
@@ -47,7 +47,7 @@ export interface OutboundEventPayload {
   timestamp: string;
   actor_id: string;
   product: string;
-  source_version: string;
+  product_version: string;
   session_id?: string;
   /** Opaque account identifier set via `setAccount()`. Omitted entirely from the
    *  payload when not set — ingest distinguishes "absent" from "present but invalid". */
@@ -63,7 +63,7 @@ export interface SessionStartPayload {
   session_id: string;
   actor_id: string;
   product: string;
-  source_version: string;
+  product_version: string;
   started_at: string;
   /** Opaque account identifier set via `setAccount()`. Omitted when not set. */
   account_id?: string;
@@ -86,7 +86,7 @@ export interface ExceptionPayload {
   occurred_at: string;
   actor_id: string;
   product: string;
-  source_version: string;
+  product_version: string;
   message?: string;
   stack_trace?: string;
   session_id?: string;

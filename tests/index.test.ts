@@ -4,7 +4,7 @@ import { Beacon } from '../src/index';
 const validConfig = () => ({
   apiKey: 'test-key-123',
   product: 'test-app',
-  sourceVersion: '1.0.0',
+  productVersion: '1.0.0',
   autoPageViews: false,
   flushIntervalMs: 300000,
   debug: false,
@@ -28,7 +28,7 @@ describe('Beacon', () => {
 
   describe('init()', () => {
     it('returns a Beacon instance with valid config (AC-1661)', () => {
-      const b = Beacon.init({ ...validConfig(), sourceVersion: '1.0.0' });
+      const b = Beacon.init({ ...validConfig(), productVersion: '1.0.0' });
       expect(b).toBeDefined();
       expect(b).toBeInstanceOf(Beacon);
     });
@@ -40,20 +40,20 @@ describe('Beacon', () => {
     });
 
     it('throws TypeError on missing apiKey (AC-1663, EC-617)', () => {
-      expect(() => Beacon.init({ apiKey: '', product: 'app', sourceVersion: '1.0' })).toThrow(TypeError);
-      expect(() => Beacon.init({ apiKey: '', product: 'app', sourceVersion: '1.0' })).toThrow('Beacon: apiKey is required.');
+      expect(() => Beacon.init({ apiKey: '', product: 'app', productVersion: '1.0' })).toThrow(TypeError);
+      expect(() => Beacon.init({ apiKey: '', product: 'app', productVersion: '1.0' })).toThrow('Beacon: apiKey is required.');
       Beacon._resetSingleton();
     });
 
     it('throws TypeError on missing product (AC-1664, EC-618)', () => {
-      expect(() => Beacon.init({ apiKey: 'key', product: '', sourceVersion: '1.0' })).toThrow('Beacon: product is required.');
+      expect(() => Beacon.init({ apiKey: 'key', product: '', productVersion: '1.0' })).toThrow('Beacon: product is required.');
       Beacon._resetSingleton();
     });
 
-    it('throws TypeError on missing sourceVersion (AC-1783, AC-1784, EC-637)', () => {
-      expect(() => Beacon.init({ apiKey: 'key', product: 'app', sourceVersion: '' })).toThrow('Beacon: sourceVersion is required.');
+    it('throws TypeError on missing productVersion (AC-1783, AC-1784, EC-637)', () => {
+      expect(() => Beacon.init({ apiKey: 'key', product: 'app', productVersion: '' })).toThrow('Beacon: productVersion is required.');
       Beacon._resetSingleton();
-      expect(() => Beacon.init({ apiKey: 'key', product: 'app' } as any)).toThrow('Beacon: sourceVersion is required.');
+      expect(() => Beacon.init({ apiKey: 'key', product: 'app' } as any)).toThrow('Beacon: productVersion is required.');
       Beacon._resetSingleton();
     });
 
@@ -529,7 +529,7 @@ describe('Beacon', () => {
       expect(body.anonymous_actor_id).toBe(deviceId);
       expect(body.identified_actor_id).toBe('userA');
       expect(body.product).toBe('test-app');
-      expect(body.source_version).toBe('1.0.0');
+      expect(body.product_version).toBe('1.0.0');
       expect(body.identified_at).toBeTruthy();
     });
 

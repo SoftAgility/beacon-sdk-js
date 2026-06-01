@@ -1,0 +1,34 @@
+name: Deprecate old npm versions
+
+# One-shot, manually-triggered job to deprecate superseded versions on npm.
+# `npm deprecate` adds a deprecation warning shown on install; it does NOT unpublish
+# (the versions stay resolvable). Use a semver range to cover everything below 3.0.0.
+on:
+  workflow_dispatch:
+    inputs:
+      range:
+        description: 'Semver range to deprecate'
+        required: true
+        default: '<3.0.0'
+      message:
+        description: 'Deprecation message'
+        required: true
+        default: 'Renamed source_app->product and source_version->product_version. Upgrade to 3.0.0+.'
+
+permissions:
+  contents: read
+
+jobs:
+  deprecate:
+    name: Deprecate @softagility/beacon-js
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Deprecate range
+        run: npm deprecate "@softagility/beacon-js@${{ inputs.range }}" "${{ inputs.message }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
