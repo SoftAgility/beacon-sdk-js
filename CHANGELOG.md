@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-05-31
+
+### BREAKING
+
+- Renamed the config field `sourceApp` to `product` in `Beacon.init(config)`. The value is unchanged — it is still the registered product slug.
+- Renamed the outbound wire field `source_app` to `product` on every emission: event (`POST /v1/events`), session-start (`POST /v1/events/sessions`), exception (`POST /v1/events/exceptions`), actor-identify, and the event manifest export (`events.exportManifest()`).
+
+Migration: rename `sourceApp` to `product` in your `Beacon.init({ ... })` call. No other changes are required. `sourceVersion` / `source_version` is unaffected.
+
 ## [1.1.0] - 2026-05-23
 
 ### Added

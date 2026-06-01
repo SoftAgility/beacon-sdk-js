@@ -3,7 +3,7 @@ import { Beacon } from '../src/index';
 
 const validConfig = () => ({
   apiKey: 'test-key-123',
-  sourceApp: 'test-app',
+  product: 'test-app',
   sourceVersion: '1.0.0',
   autoPageViews: false,
   flushIntervalMs: 300000,
@@ -40,20 +40,20 @@ describe('Beacon', () => {
     });
 
     it('throws TypeError on missing apiKey (AC-1663, EC-617)', () => {
-      expect(() => Beacon.init({ apiKey: '', sourceApp: 'app', sourceVersion: '1.0' })).toThrow(TypeError);
-      expect(() => Beacon.init({ apiKey: '', sourceApp: 'app', sourceVersion: '1.0' })).toThrow('Beacon: apiKey is required.');
+      expect(() => Beacon.init({ apiKey: '', product: 'app', sourceVersion: '1.0' })).toThrow(TypeError);
+      expect(() => Beacon.init({ apiKey: '', product: 'app', sourceVersion: '1.0' })).toThrow('Beacon: apiKey is required.');
       Beacon._resetSingleton();
     });
 
-    it('throws TypeError on missing sourceApp (AC-1664, EC-618)', () => {
-      expect(() => Beacon.init({ apiKey: 'key', sourceApp: '', sourceVersion: '1.0' })).toThrow('Beacon: sourceApp is required.');
+    it('throws TypeError on missing product (AC-1664, EC-618)', () => {
+      expect(() => Beacon.init({ apiKey: 'key', product: '', sourceVersion: '1.0' })).toThrow('Beacon: product is required.');
       Beacon._resetSingleton();
     });
 
     it('throws TypeError on missing sourceVersion (AC-1783, AC-1784, EC-637)', () => {
-      expect(() => Beacon.init({ apiKey: 'key', sourceApp: 'app', sourceVersion: '' })).toThrow('Beacon: sourceVersion is required.');
+      expect(() => Beacon.init({ apiKey: 'key', product: 'app', sourceVersion: '' })).toThrow('Beacon: sourceVersion is required.');
       Beacon._resetSingleton();
-      expect(() => Beacon.init({ apiKey: 'key', sourceApp: 'app' } as any)).toThrow('Beacon: sourceVersion is required.');
+      expect(() => Beacon.init({ apiKey: 'key', product: 'app' } as any)).toThrow('Beacon: sourceVersion is required.');
       Beacon._resetSingleton();
     });
 
@@ -383,7 +383,7 @@ describe('Beacon', () => {
       const manifest = JSON.parse(b.events.exportManifest());
       expect(manifest.schema_version).toBe('1');
       expect(manifest.generated_at).toBeTruthy();
-      expect(manifest.source_app).toBe('test-app');
+      expect(manifest.product).toBe('test-app');
     });
 
     it('exportManifest works when opted out (AC-1776)', () => {
@@ -528,7 +528,7 @@ describe('Beacon', () => {
       const body = JSON.parse(opts.body as string);
       expect(body.anonymous_actor_id).toBe(deviceId);
       expect(body.identified_actor_id).toBe('userA');
-      expect(body.source_app).toBe('test-app');
+      expect(body.product).toBe('test-app');
       expect(body.source_version).toBe('1.0.0');
       expect(body.identified_at).toBeTruthy();
     });

@@ -3,7 +3,7 @@ export interface BeaconConfig {
   /** API key for the `Authorization: Bearer` header. Required, non-empty. */
   apiKey: string;
   /** Application identifier. Required, non-empty, max 128 chars. */
-  sourceApp: string;
+  product: string;
   /** Application version. Required, non-empty, max 256 chars. */
   sourceVersion: string;
   /** Inactivity timeout in minutes before a session rotates. Default 30, clamped [1, 1440]. */
@@ -27,7 +27,7 @@ export interface BeaconConfig {
 /** Resolved configuration with all defaults applied and values clamped. */
 export interface ResolvedConfig {
   apiKey: string;
-  sourceApp: string;
+  product: string;
   sourceVersion: string;
   sessionTimeoutMinutes: number;
   autoPageViews: boolean;
@@ -46,7 +46,7 @@ export interface OutboundEventPayload {
   name: string;
   timestamp: string;
   actor_id: string;
-  source_app: string;
+  product: string;
   source_version: string;
   session_id?: string;
   /** Opaque account identifier set via `setAccount()`. Omitted entirely from the
@@ -62,7 +62,7 @@ export interface OutboundEventPayload {
 export interface SessionStartPayload {
   session_id: string;
   actor_id: string;
-  source_app: string;
+  product: string;
   source_version: string;
   started_at: string;
   /** Opaque account identifier set via `setAccount()`. Omitted when not set. */
@@ -85,7 +85,7 @@ export interface ExceptionPayload {
   severity: 'fatal' | 'non_fatal';
   occurred_at: string;
   actor_id: string;
-  source_app: string;
+  product: string;
   source_version: string;
   message?: string;
   stack_trace?: string;
@@ -129,7 +129,7 @@ export interface EventDefinition {
 export interface EventManifest {
   schema_version: string;
   generated_at: string;
-  source_app: string;
+  product: string;
   events: EventDefinition[];
 }
 

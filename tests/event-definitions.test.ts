@@ -53,7 +53,7 @@ describe('EventDefinitionRegistry', () => {
     const manifest = JSON.parse(reg.exportManifest());
     expect(manifest.schema_version).toBe('1');
     expect(manifest.generated_at).toBeTruthy();
-    expect(manifest.source_app).toBe('my-app');
+    expect(manifest.product).toBe('my-app');
     expect(manifest.events).toBeInstanceOf(Array);
   });
 

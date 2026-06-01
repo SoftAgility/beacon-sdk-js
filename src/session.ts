@@ -28,7 +28,7 @@ export class SessionManager {
     if (this._c.debug) try { console.debug(`[Beacon] Session started: ${sid}`); } catch {}
     const body: SessionStartPayload = {
       session_id: sid, actor_id: actorId,
-      source_app: this._c.sourceApp, source_version: this._c.sourceVersion,
+      product: this._c.product, source_version: this._c.sourceVersion,
       started_at: sat,
     };
     if (accountId) body.account_id = accountId;

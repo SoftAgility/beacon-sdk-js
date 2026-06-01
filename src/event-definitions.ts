@@ -16,7 +16,7 @@ export class EventDefinitionRegistry {
       const e: EventDefinition[] = [];
       for (const k of this._r) { const p = k.split('\0'); e.push({ category: p[0], name: p[1] }); }
       e.sort((a, b) => a.category < b.category ? -1 : a.category > b.category ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
-      return JSON.stringify({ schema_version: '1', generated_at: new Date().toISOString(), source_app: this._sa, events: e } as EventManifest);
+      return JSON.stringify({ schema_version: '1', generated_at: new Date().toISOString(), product: this._sa, events: e } as EventManifest);
     } catch { return ''; }
   }
   createApi(): EventsApi { return { define: (c, n) => this.define(c, n), exportManifest: () => this.exportManifest() }; }
