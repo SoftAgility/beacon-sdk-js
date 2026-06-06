@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-06-05
+
+### Changed
+
+- **Session end now fires on `pagehide` instead of `beforeunload`.** Clean app closes are recorded reliably on mobile and back/forward-cache navigation, where `beforeunload` frequently never fires and the session would otherwise be left for the server's inactivity timeout. `beforeunload` also disqualified the page from the bfcache; `pagehide` does not. No public API change — purely a more reliable delivery of the existing `normal` session end (still a keepalive `fetch` with the `Authorization` header; `navigator.sendBeacon` is intentionally not used because it cannot set that header).
+- The session is **deliberately not ended on `visibilitychange:hidden`** (a mere tab-switch) — doing so would split one visit into many short sessions and corrupt session duration/count metrics. `visibilitychange:hidden` continues to flush queued events only.
+
 ## [3.0.0] - 2026-06-01
 
 ### BREAKING

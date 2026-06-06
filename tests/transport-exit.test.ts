@@ -37,13 +37,34 @@ describe('Transport — Exit Flush', () => {
     expect(keepaliveCalls.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('beforeunload sends session end with keepalive (AC-1701)', () => {
+  it('pagehide sends session end with keepalive (AC-1701)', () => {
+    const b = Beacon.init(validConfig());
+    b.track('cat', 'name');
+    fetchMock.mockClear();
+    window.dispatchEvent(new Event('pagehide'));
+    const sessionEndCalls = fetchMock.mock.calls.filter(c => (c[0] as string).includes('/sessions/end') && c[1]?.keepalive === true);
+    expect(sessionEndCalls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('beforeunload no longer ends the session (replaced by pagehide for bfcache/mobile)', () => {
     const b = Beacon.init(validConfig());
     b.track('cat', 'name');
     fetchMock.mockClear();
     window.dispatchEvent(new Event('beforeunload'));
-    const sessionEndCalls = fetchMock.mock.calls.filter(c => (c[0] as string).includes('/sessions/end') && c[1]?.keepalive === true);
-    expect(sessionEndCalls.length).toBeGreaterThanOrEqual(1);
+    const sessionEndCalls = fetchMock.mock.calls.filter(c => (c[0] as string).includes('/sessions/end'));
+    expect(sessionEndCalls.length).toBe(0);
+  });
+
+  it('visibilitychange hidden does NOT end the session — no session fragmentation on tab-switch', () => {
+    const b = Beacon.init(validConfig());
+    b.track('cat', 'name');
+    fetchMock.mockClear();
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true, configurable: true });
+    window.dispatchEvent(new Event('visibilitychange'));
+    // events are flushed (keepalive), but the session must NOT be ended on a
+    // mere tab-switch — that would split one visit into many short sessions.
+    const sessionEndCalls = fetchMock.mock.calls.filter(c => (c[0] as string).includes('/sessions/end'));
+    expect(sessionEndCalls.length).toBe(0);
   });
 
   it('exitFlushed flag prevents double flush (AC-1787, ED-685)', () => {
@@ -52,7 +73,7 @@ describe('Transport — Exit Flush', () => {
     fetchMock.mockClear();
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true, configurable: true });
     window.dispatchEvent(new Event('visibilitychange'));
-    window.dispatchEvent(new Event('beforeunload'));
+    window.dispatchEvent(new Event('pagehide'));
     const eventFlushCalls = fetchMock.mock.calls.filter(c => (c[0] as string).endsWith('/v1/events') && c[1]?.keepalive === true);
     expect(eventFlushCalls.length).toBe(1);
   });

@@ -132,10 +132,16 @@ export class Beacon {
     this._er = new EventDefinitionRegistry(c.product, c.debug);
     this.events = this._er.createApi();
     this._h1 = () => this._vis();
-    this._h2 = () => this._bu();
+    this._h2 = () => this._ph();
     this._h3 = (e) => this._st(e);
     window.addEventListener('visibilitychange', this._h1);
-    window.addEventListener('beforeunload', this._h2);
+    // `pagehide` (not `beforeunload`): fires reliably on mobile and bfcache
+    // navigation where `beforeunload` does not, and does not disqualify the page
+    // from the back/forward cache. This is the terminal "page going away" signal
+    // we end the session on. We deliberately do NOT end the session on
+    // `visibilitychange:hidden` (tab-switch) — that would fragment one visit into
+    // many short sessions and corrupt duration/count metrics.
+    window.addEventListener('pagehide', this._h2);
     window.addEventListener('storage', this._h3);
     if (!this._oo) { this._timer(); if (c.autoPageViews) { installPageViewHooks(() => this._apv()); this._ens(Date.now()); } }
     if (c.debug) try { console.debug(`[Beacon] Initialized. actorId=${this._aid}`); } catch {}
@@ -276,7 +282,7 @@ export class Beacon {
       this._dead = true;
       if (this._tid !== null) { clearInterval(this._tid); this._tid = null; }
       window.removeEventListener('visibilitychange', this._h1);
-      window.removeEventListener('beforeunload', this._h2);
+      window.removeEventListener('pagehide', this._h2);
       window.removeEventListener('storage', this._h3);
       removePageViewHooks(); clearIdentityStorage();
       this._tr.clearQueue(); this._bc.clear(); this._er.clear();
@@ -396,7 +402,14 @@ export class Beacon {
     } catch {}
   }
 
-  private _bu(): void {
+  // pagehide handler — the terminal "page going away" moment. Flush any
+  // remaining events (unless visibilitychange:hidden already did), then end the
+  // session with a keepalive `normal` end. `endSession` nulls the session id, so
+  // a duplicate pagehide (or a desktop visibilitychange→pagehide sequence) is a
+  // safe no-op — exactly-once without an extra guard. keepalive fetch is used
+  // (not sendBeacon) because the end is authenticated with an Authorization
+  // header, which sendBeacon cannot set.
+  private _ph(): void {
     if (this._dead || this._oo) return;
     try {
       if (!this._ef) this._tr.exitFlush();
