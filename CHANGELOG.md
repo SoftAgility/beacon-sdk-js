@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-09-12
+
+### Fixed
+
+- **`Retry-After: 0` produced no cooldown at all.** The clamp floored the value at 0, so a zero (or negative) `Retry-After` set the backoff deadline to `Date.now()` — already in the past by the time it was next read. The transport then resumed on the very next tick and walked straight back into the same rate limit. Floored at 1 second.
+
+- **`exitFlush()` ignored an active cooldown and fired an unload beacon anyway.** During a cooldown the server has already refused this budget, so that request is rejected on arrival. The queued events are lost either way once the page goes — the only thing the request changed was adding a guaranteed-rejected call to a server that is already shedding load. `exitFlush()` now returns `false` while a cooldown is in force.
+
+**Patch rather than minor, deliberately.** Unlike the sibling .NET and C++ SDKs — which shipped the same cross-SDK requirement as a minor and a major respectively — this transport was already substantially correct: it held a backoff deadline, re-queued the rejected batch, and broke out of `flushAll` on a 429. These are two genuine holes in an existing design, not new behaviour. The asymmetry across the three SDKs reflects how wrong each one actually was.
+
 ## [3.0.1] - 2026-06-05
 
 ### Changed
