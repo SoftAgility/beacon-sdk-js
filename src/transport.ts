@@ -38,6 +38,10 @@ export class Transport {
 
   exitFlush(): boolean {
     if (this._oo() || !this._q.length) return false;
+    // FR-2366: a live cooldown means the server has already refused this budget, so an unload
+    // beacon would be rejected too. The events are lost either way once the page goes; the
+    // difference is whether we add a guaranteed-rejected request to a server that is shedding.
+    if (this._rau > 0 && Date.now() < this._rau) return false;
     let b = [...this._q]; this._q = [];
     let p = JSON.stringify(b);
     const e = new TextEncoder(); let tc = 0;
@@ -65,7 +69,9 @@ export class Transport {
       if (s === 402) { if (this._c.debug) try { console.warn('Beacon: account hard-capped (402). Events discarded.'); } catch {} return; }
       if (s === 429) {
         const ra = r.headers.get('Retry-After'); let sec = 30;
-        if (ra) { const p = parseInt(ra, 10); if (!isNaN(p)) sec = Math.min(Math.max(p, 0), 60); }
+        // FR-2366: floor at 1. A Retry-After of 0 (or negative) previously produced a deadline of
+        // now, i.e. no cooldown at all, so the next tick resumed straight into the same limit.
+        if (ra) { const p = parseInt(ra, 10); if (!isNaN(p)) sec = Math.min(Math.max(p, 1), 60); }
         this._q = [...batch, ...this._q].slice(0, this._c.maxQueueSize);
         this._rau = Date.now() + sec * 1000;
         if (this._c.debug) try { console.warn(`Beacon: rate limited (429). Retrying after ${sec}s.`); } catch {}
